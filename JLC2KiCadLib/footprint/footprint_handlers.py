@@ -56,7 +56,7 @@ def h_TRACK(data, kicad_mod, footprint_info):
             )
             return ()
 
-    for i in range(int(len(points) / 2) - 1):
+    for i in range(len(points) // 2 - 1):
         start = [points[2 * i], points[2 * i + 1]]
         end = [points[2 * i + 2], points[2 * i + 3]]
         try:
@@ -104,19 +104,16 @@ def h_PAD(data, kicad_mod, footprint_info):
         shape = "SHAPE_OVAL"
 
     # if pad is Circle, no rotation is specified
-    if shape == "SHAPE_CIRCLE":
-        rotation = 0
-    else:
-        rotation = float(data[9])
-
+    rotation = 0 if shape == "SHAPE_CIRCLE" else float(data[9])
     if data[5] == "1":
         drill_size = 1
         pad_type = Pad.TYPE_SMT
         pad_layer = Pad.LAYERS_SMT
         if shape == "SHAPE_CUSTOM":
-            points = []
-            for i, coord in enumerate(data[8].split(" ")):
-                points.append(mil2mm(coord) - at[i % 2])
+            points = [
+                mil2mm(coord) - at[i % 2]
+                for i, coord in enumerate(data[8].split(" "))
+            ]
             primitives = [Polygon(nodes=zip(points[::2], points[1::2]))]
             size=[0.1,0.1]
             rotation = 0
@@ -139,9 +136,7 @@ def h_PAD(data, kicad_mod, footprint_info):
         pad_layer = Pad.LAYERS_THT
 
     elif data[5] == "11" and shape == "SHAPE_RECT":
-        if float(data[11]) == 0:  # Check if the hole is oval
-            pass
-        else:
+        if float(data[11]) != 0:
             drill_size = [drill_size, mil2mm(data[11])]
 
         pad_type = Pad.TYPE_THT
@@ -231,15 +226,9 @@ def h_ARC(data, kicad_mod, footprint_info):
             length_squared = 0
             reversed = "1"
 
-        if reversed == "1":
-            vec2 = vec1.rotate(-90)
-            magnitude = sqrt(vec2[0] ** 2 + vec2[1] ** 2)
-            vec2 = Vector2D(vec2[0] / magnitude, vec2[1] / magnitude)
-        else:
-            vec2 = vec1.rotate(90)
-            magnitude = sqrt(vec2[0] ** 2 + vec2[1] ** 2)
-            vec2 = Vector2D(vec2[0] / magnitude, vec2[1] / magnitude)
-
+        vec2 = vec1.rotate(-90) if reversed == "1" else vec1.rotate(90)
+        magnitude = sqrt(vec2[0] ** 2 + vec2[1] ** 2)
+        vec2 = Vector2D(vec2[0] / magnitude, vec2[1] / magnitude)
         # calculate the lenght from mid to centre using pythagoras:
         length = sqrt(length_squared)
         # calculate the centre using mid and vec2 with the correct length:

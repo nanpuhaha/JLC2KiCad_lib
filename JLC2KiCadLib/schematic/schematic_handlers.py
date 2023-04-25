@@ -18,16 +18,14 @@ def h_R(data, translation, kicad_schematic):
     """
 
     try:
+        X1 = float(data[0])
+        Y1 = float(data[1])
         if len(data) == 12:
-            X1 = float(data[0])
-            Y1 = float(data[1])
-            X2 = float(X1) + float(data[4])
-            Y2 = float(Y1) + float(data[5])
+            X2 = X1 + float(data[4])
+            Y2 = Y1 + float(data[5])
         else:
-            X1 = float(data[0])
-            Y1 = float(data[1])
-            X2 = float(X1) + float(data[2])
-            Y2 = float(Y1) + float(data[3])
+            X2 = X1 + float(data[2])
+            Y2 = Y1 + float(data[3])
 
         X1 = mil2mm(X1 - translation[0])
         Y1 = -mil2mm(Y1 - translation[1])
@@ -106,9 +104,9 @@ def h_P(data, translation, kicad_schematic):
             f'Schematic : pin number {pinNumber} : "{pinName}" failed to find orientation. Using Default orientation'
         )
 
-    if rotation == 0 or rotation == 180:
+    if rotation in [0, 180]:
         length = mil2mm(abs(float(data[8].split("h")[-1])))
-    elif rotation == 90 or rotation == 270:
+    elif rotation in [90, 270]:
         length = mil2mm(abs(float(data[8].split("v")[-1])))
 
     try:
@@ -162,11 +160,10 @@ def h_PL(data, translation, kicad_schematic):
 
     try:
         pathString = data[0].split(" ")
-        polypts = []
-        for i, _ in enumerate(pathString[::2]):
-            polypts.append(
-                f"(xy {mil2mm(float(pathString[2*i]) - translation[0])} {- mil2mm(float(pathString[2*i+1]) - translation[-1])})"
-            )
+        polypts = [
+            f"(xy {mil2mm(float(pathString[2 * i]) - translation[0])} {-mil2mm(float(pathString[2 * i + 1]) - translation[-1])})"
+            for i, _ in enumerate(pathString[::2])
+        ]
         polystr = "\n          ".join(polypts)
 
         kicad_schematic.drawing += f"""
@@ -188,11 +185,10 @@ def h_PG(data, translation, kicad_schematic):
 
     try:
         pathString = [i for i in data[0].split(" ") if i]
-        polypts = []
-        for i, _ in enumerate(pathString[::2]):
-            polypts.append(
-                f"(xy {mil2mm(float(pathString[2*i]) - translation[0])} {- mil2mm(float(pathString[2*i+1]) - translation[1])})"
-            )
+        polypts = [
+            f"(xy {mil2mm(float(pathString[2 * i]) - translation[0])} {-mil2mm(float(pathString[2 * i + 1]) - translation[1])})"
+            for i, _ in enumerate(pathString[::2])
+        ]
         polypts.append(polypts[0])
         polystr = "\n          ".join(polypts)
 
@@ -240,7 +236,7 @@ def h_A(data, translation, kicad_schematic):
 
         def c(e, t, n, a):
             i = e * n + t * a
-            r = sqrt((e * e + t * t) * (n * n + a * a))
+            r = sqrt((e**2 + t**2) * (n**2 + a**2))
             o = acos(i / r)
             return o
 
