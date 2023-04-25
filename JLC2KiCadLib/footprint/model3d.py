@@ -49,13 +49,13 @@ def get_3Dmodel(
         material = {}
         material_id = ""
         for value in match.split("\n"):
-            if value[0:6] == "newmtl":
+            if value[:6] == "newmtl":
                 material_id = value.split(" ")[1]
-            elif value[0:2] == "Ka":
+            elif value[:2] == "Ka":
                 material["ambientColor"] = value.split(" ")[1:]
-            elif value[0:2] == "Kd":
+            elif value[:2] == "Kd":
                 material["diffuseColor"] = value.split(" ")[1:]
-            elif value[0:2] == "Ks":
+            elif value[:2] == "Ks":
                 material["specularColor"] = value.split(" ")[1:]
             elif value[0] == "d":
                 material["transparency"] = value.split(" ")[1]
@@ -66,14 +66,15 @@ def get_3Dmodel(
     pattern = "v (.*?)\n"
     matchs = re.findall(pattern=pattern, string=text, flags=re.DOTALL)
 
-    vertices = []
-    for vertice in matchs:
-        vertices.append(
-            " ".join(
-                [str(round(float(coord) / 2.54, 4)) for coord in vertice.split(" ")]
-            )
+    vertices = [
+        " ".join(
+            [
+                str(round(float(coord) / 2.54, 4))
+                for coord in vertice.split(" ")
+            ]
         )
-
+        for vertice in matchs
+    ]
     # get shape list
     shapes = text.split("usemtl")[1:]
     for shape in shapes:

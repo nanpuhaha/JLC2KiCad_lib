@@ -4,9 +4,9 @@ import sys
 
 def set_logging(logging_level, logging_file):
 
-    LOGGING_FILE = "JLC2KiCad_lib.log"
-
     if logging_file:
+        LOGGING_FILE = "JLC2KiCad_lib.log"
+
         logging.basicConfig(
             filename=LOGGING_FILE, format="%(asctime)s - %(levelname)s - %(message)s"
         )

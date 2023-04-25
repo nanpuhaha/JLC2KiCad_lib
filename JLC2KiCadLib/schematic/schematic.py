@@ -31,6 +31,7 @@ def create_schematic(
     component_id,
     skip_existing,
 ):
+
     class kicad_schematic:
         drawing = ""
         pinNamesHide = ""
@@ -61,16 +62,14 @@ def create_schematic(
             .replace(".", "_")
         )
 
-        component_types_values = []
-        for value_type in supported_value_types:
-            if value_type in data["result"]["dataStr"]["head"]["c_para"]:
-                component_types_values.append(
-                    (
-                        value_type,
-                        data["result"]["dataStr"]["head"]["c_para"][value_type],
-                    )
-                )
-
+        component_types_values = [
+            (
+                value_type,
+                data["result"]["dataStr"]["head"]["c_para"][value_type],
+            )
+            for value_type in supported_value_types
+            if value_type in data["result"]["dataStr"]["head"]["c_para"]
+        ]
         if not ComponentName:
             ComponentName = component_title
             component_title += "_0"
@@ -84,7 +83,7 @@ def create_schematic(
         if not library_name:
             library_name = ComponentName
 
-        filename = f"{output_dir}/Schematic/" + library_name + ".kicad_sym"
+        filename = f"{output_dir}/Schematic/{library_name}.kicad_sym"
 
         logging.info(f"creating schematic {component_title} in {library_name}")
 
@@ -97,7 +96,7 @@ def create_schematic(
             model = args[0]
             logging.debug(args)
             if model not in handlers:
-                logging.warning("Schematic : parsing model not in handler : " + model)
+                logging.warning(f"Schematic : parsing model not in handler : {model}")
             else:
                 handlers.get(model)(
                     data=args[1:],
@@ -136,26 +135,18 @@ def create_schematic(
     if not os.path.exists(f"{output_dir}/Schematic"):
         os.makedirs(f"{output_dir}/Schematic")
 
-    if os.path.exists(filename):
-        update_library(
-            library_name,
-            ComponentName,
-            template_lib_component,
-            output_dir,
-            skip_existing,
-        )
-    else:
+    if not os.path.exists(filename):
         with open(filename, "w") as f:
             logging.info(f"writing in {filename} file")
             f.write(template_lib_header)
             f.write(template_lib_footer)
-        update_library(
-            library_name,
-            ComponentName,
-            template_lib_component,
-            output_dir,
-            skip_existing,
-        )
+    update_library(
+        library_name,
+        ComponentName,
+        template_lib_component,
+        output_dir,
+        skip_existing,
+    )
 
 
 def get_type_values_properties(start_index, component_types_values):
